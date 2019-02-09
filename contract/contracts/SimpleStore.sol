@@ -1,13 +1,12 @@
-pragma solidity ^0.4.23;
+pragma solidity >=0.4.22 <0.6.0;
 
 contract SimpleStore {
     string value;
-    
-    function set(string _value) public {
+    function set(string memory _value) public {
         value = _value;
     }
 
-    function get() public view returns (string) {
+    function get() public view returns (string memory) {
         return (value);
     }
 }
