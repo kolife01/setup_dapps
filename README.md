@@ -5,7 +5,7 @@ Setup for dApps project
 ```
 git clone https://github.com/kolife01/setup_dapps.git
 cd setup_dapps
-cd contracts
+cd contract
 npm install
 ```
 
@@ -46,7 +46,7 @@ truffle.cmd migrate
 2. Replace contract_abi to your contract ABI.
 => "js/contract_abi.js" var contractABI = []
 
-#How to use
+# How to use
 1. Connect Metamask.
 2. Input text in textbox.
 3. Click Set to set text in contract.
