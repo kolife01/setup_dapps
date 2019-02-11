@@ -56,8 +56,10 @@ typings/
 
 # dotenv environment variables file
 .env
-.secret.json
-
 
 # next.js build output
 .next
+
+#contract
+.secret.json
+build

@@ -5,16 +5,18 @@ Setup for dApps project
 ```
 git clone https://github.com/kolife01/setup_dapps.git
 cd setup_dapps
+cd contracts
 npm install
 ```
 
-# Replace mnemonic & infura_access_token file
+# Replace mnemonic & infura_access_token
 
 ## mnemonic
-Replace mnemonic file "Put your mnemonic here" to your mnemonic
+Replace .secret.json file "Put your mnemonic here" to your mnemonic
 
 ## infura_access_token
-Replace infura_access_token file "Put your infura access token here" to your infura access token
+Replace .secret.json file "Put your infura access token here" to your infura access token
+
 
 # Migrate
    - Ropsten
@@ -36,3 +38,17 @@ truffle migrate --network live
 ```
 truffle.cmd migrate
 ```
+
+# Preparation
+1. Replace contractAddress to your contract address.
+=> "index.html" var contractAddress = "YOUR_CONTRACT_ADDRESS"
+
+2. Replace contract_abi to your contract ABI.
+=> "js/contract_abi.js" var contractABI = []
+
+#How to use
+1. Connect Metamask.
+2. Input text in textbox.
+3. Click Set to set text in contract.
+4. Wait transaction is confirmed.
+5. Click Get to get text from contract.
