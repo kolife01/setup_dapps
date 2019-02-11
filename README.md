@@ -19,6 +19,11 @@ Replace .secret.json file "Put your infura access token here" to your infura acc
 
 
 # Migrate
+  - local
+```
+truffle migrate
+```
+
    - Ropsten
 ```
 truffle migrate --network ropsten
