@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>IPFS sample</title>
+</head>
+<body>
+    <h1>IPFS sample</h1>
+    <h2>Text</h2>
+    <input type="text" name="" id="input_text">
+    <button value="Set" onClick="set_text()">set</button>
+    <a href="" id="ipfsLink1"></a>
+
+    <h2>Image</h2>
+    <input type="file" name="" id="input_img">
+    <button value="Set" onClick="set_img()">set</button>
+    <a href="" id="ipfsLink2"></a>
+
+<script src="js/ipfs.js"></script>
+<script src="js/buffer.js"></script>
+<script>
+var ipfs = window.IpfsApi({ host: 'ipfs.infura.io', protocol: 'https' });
+
+function set_text(){
+    var text = document.getElementById("input_text").value;
+    console.log(text)
+    var buf = buffer.Buffer(text)
+    ipfs.add(buf, (err, result) => {
+        textHash = result[0].hash;
+        var url = "https://ipfs.io/ipfs/" + textHash;
+        var target = document.getElementById("ipfsLink1");
+        target.href = url
+        target.innerText = url
+        console.log(url);
+    });
+}
+
+
+function set_img() {
+//   return new Promise(resolve => {
+
+  var imgData = document.getElementById("input_img");
+  var idxDot = imgData.value.lastIndexOf(".") + 1;
+  var extFile = imgData.value.substr(idxDot, imgData.value.length).toLowerCase();
+  if (extFile == "jpeg" || extFile == "png"|| extFile == "jpg" || extFile == "gif") {
+      var reader = new FileReader();
+      reader.readAsArrayBuffer(imgData.files[0]);
+      reader.onloadend = function (event) {
+          console.log(reader.result)
+          var buf = buffer.Buffer(reader.result)
+          ipfs.add(buf, (err, result) => {
+            imageHash = result[0].hash;
+            var url = "https://ipfs.io/ipfs/" + imageHash;
+            var target = document.getElementById("ipfsLink2");
+            target.href = url
+            target.innerText = url
+            console.log(url);
+            resolve(url)
+          });
+      }
+  } else {
+      alert("Only jpeg/gif/png files are allowed!");
+  }
+//   })
+}
+</script>
+</body>
+</html>
