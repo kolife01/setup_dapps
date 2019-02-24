@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Ethereum dApps ERC721 + IPFS</title>
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/web3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/contract_abi.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/buffer.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/ipfs.js"></script>
+</head>
+
+<body>
+
+    <h1>Ethereum dApps ERC721 + IPFS</h1>
+
+    <h2>Mint Token</h2>
+    <p>name</p>
+    <input type="text" id="name">
+    <p>description</p>
+    <input type="text" id="description">
+    <p>image</p>
+    <input type="file" name="" id="input_img">
+    <button value="Set" onClick="set()">set</button>
+    <a href="" id="ipfsLink2"></a>
+
+    <h2>Get MyToken Info</h2>
+    <button value="get" onClick="get()">get</button>
+    <div id="output">
+        <!-- <div>
+            <p>name</p>
+            <p>description</p>
+            <img src="" alt="">
+        </div> -->
+    </div>
+
+<script>
+var contract;
+var userAccount;
+var ipfs = window.IpfsApi({ host: 'ipfs.infura.io', protocol: 'https' });
+
+function startApp() {
+    //Replace "YOUR_CONTRACT_ADDRESS" with your contract address
+    var contractAddress = "0x503eD936E37723e6566DBdC7349B7117b4163b60";
+    contract = new web3js.eth.Contract(contractABI, contractAddress);
+
+    var accountInterval = setInterval(function () {
+        web3.eth.getAccounts((error, accounts) => {
+            if (accounts[0] !== userAccount) {
+                userAccount = accounts[0];
+            }
+        });
+    }, 100);
+
+}
+
+window.addEventListener('load', function () {
+    // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+    if (typeof web3 !== 'undefined') {
+        // Use Mist/MetaMask's provider
+        web3js = new Web3(web3.currentProvider);
+    } else {
+        // Handle the case where the user doesn't have Metamask installed
+        // Probably show them a message prompting them to install Metamask
+    }
+    // Now you can start your app & access web3 freely:
+    startApp()
+})
+
+
+async function set() {
+    var name = document.getElementById("name").value;
+    var description = document.getElementById("description").value;
+    var image = await set_img()
+    var metadata = {
+        "name": name,
+        "description": description,
+        "image": image
+    }
+    console.log(metadata)
+    console.log(JSON.stringifymetadata)
+
+    contract.methods.mintItem(JSON.stringify(metadata))
+        .send({ from: userAccount })
+        .on("transactionHash", function (txhash) {
+            alert("Txhash: " +  txhash);
+        })
+        .on("receipt", function (receipt) {
+            //Process when transaction is confirmed
+            console.log(receipt)
+        })
+        .on("error", function (error) {
+            //Process when transaction is failed
+            console.log(error)
+        });
+}
+
+
+async function get() {
+    balanceOf = await contract.methods.balanceOf(userAccount).call()
+    console.log(balanceOf)
+    for(let i = 2; i <= balanceOf; i++){
+        tokenURI = await contract.methods.tokenURI(i).call()
+        metadata = JSON.parse(tokenURI)
+        console.log(metadata)
+        var card =
+        $(
+            '<div>' +
+            '<p>' + metadata.name  + '</p>' +
+            '<p>' + metadata.description + '</p>' +
+            '<img src="' +metadata.image + '" alt="">' +
+            '</div>'
+        )
+        card.appendTo('#output')
+    }
+
+}
+
+function set_img() {
+  return new Promise(resolve => {
+
+  var imgData = document.getElementById("input_img");
+  var idxDot = imgData.value.lastIndexOf(".") + 1;
+  var extFile = imgData.value.substr(idxDot, imgData.value.length).toLowerCase();
+  if (extFile == "jpeg" || extFile == "png"|| extFile == "jpg" || extFile == "gif") {
+      var reader = new FileReader();
+      reader.readAsArrayBuffer(imgData.files[0]);
+      reader.onloadend = function (event) {
+          console.log(reader.result)
+          var buf = buffer.Buffer(reader.result)
+          ipfs.add(buf, (err, result) => {
+            imageHash = result[0].hash;
+            var url = "https://ipfs.io/ipfs/" + imageHash;
+            var target = document.getElementById("ipfsLink2");
+            target.href = url
+            target.innerText = url
+            console.log(url);
+            resolve(url)
+          });
+      }
+  } else {
+      alert("Only jpeg/gif/png files are allowed!");
+  }
+  })
+}
+
+    </script>
+
+</body>
+
+</html>
