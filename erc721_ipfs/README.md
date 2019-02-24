@@ -53,7 +53,8 @@ truffle.cmd migrate
 
 # How to use
 1. Connect Metamask.
-2. Input text in textbox.
-3. Click Set to set text in contract.
-4. Wait transaction is confirmed.
-5. Click Get to get text from contract.
+2. Input name, description in textbox.
+3. Input image in chooseFile.
+4. Click Set to set metadata in contract.
+5. Wait transaction is confirmed.
+6. Click Get to token from contract.
