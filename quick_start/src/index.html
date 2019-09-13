@@ -21,11 +21,14 @@
         var contract;
         var userAccount;
 
-        function startApp() {
+        async function startApp() {
             //Replace "YOUR_CONTRACT_ADDRESS" with your contract address
             var contractAddress = "YOUR_CONTRACT_ADDRESS";
             contract = new web3js.eth.Contract(contractABI, contractAddress);
 
+            if(window.ethereum){
+                await ethereum.enable()
+            }
             var accountInterval = setInterval(function () {
                 web3.eth.getAccounts((error, accounts) => {
                     if (accounts[0] !== userAccount) {
@@ -40,7 +43,7 @@
             // Checking if Web3 has been injected by the browser (Mist/MetaMask)
             if (typeof web3 !== 'undefined') {
                 // Use Mist/MetaMask's provider
-                web3js = new Web3(web3.currentProvider);
+                web3js = new Web3(window.ethereum);
             } else {
                 // Handle the case where the user doesn't have Metamask installed
                 // Probably show them a message prompting them to install Metamask
