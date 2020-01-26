@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple Lending Dapp</title>
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="./js/contract_abi.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <h1>Simple Lending Dapp</h1>
+
+        <h2></h2>
+        <p>Please connect Rinkeby Network</p>
+        <p>address: {{ userAccount }}</p>
+        <p>balance: {{ daiBalance }} DAI</p>
+        <p>balance: {{ cdaiBalance }} cDAI</p>
+        <button @click="get">getBalance</button><br>
+        <button @click="approve">Approve</button><br>
+        <input v-model="ammount" placeholder="ammount">
+        <button @click="mint">Mint</button><br>
+        <input v-model="ammount" placeholder="ammount">
+        <button @click="redeemUnderlying">RedeemUnderlying</button><br>
+        <br>
+        <a :href="'https://rinkeby.etherscan.io/tx/' + txhash">TxInfo: {{ txhash }}</a>
+        <h2>How to get Rinkeby ETH & DAI</h2>
+        <p>step1: get Rinkeby ETH <a href="https://faucet.rinkeby.io/">link</a></p>
+        <p>step2: get Rinkeby DAI <a href="https://app.compound.finance/asset/cDAI">link</a></p>
+        <input v-model="address" placeholder="address">
+        <button @click="approve2">Approve</button><br>
+    </div>
+
+    <script>
+    var app = new Vue({
+      el: '#app',
+      data: {
+        cdaiBalance: '0',
+        daiBalance: '0',
+        daiContractAddress:'0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea',
+        cdaiContractAddress:'0x6d7f0754ffeb405d23c51ce938289d4835be3b14',
+        userAccount: '',
+        ammount: '',
+        txhash: '',
+        address: ''
+      },
+      mounted(){
+            // this.userAccount = '0x6183e0EA3727E40c770A28ebaD62A4F008543fe4'
+            // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+            if (typeof web3 !== 'undefined') {
+                // Use Mist/MetaMask's provider
+                web3js = new Web3(window.ethereum);
+            } else {
+                // Handle the case where the user doesn't have Metamask installed
+                // Probably show them a message prompting them to install Metamask
+            }
+            // Now you can start your app & access web3 freely:
+            var daiContractAddress = this.daiContractAddress;
+            daiContract = new web3js.eth.Contract(daiContractABI, daiContractAddress);
+
+            var cdaiContractAddress = this.cdaiContractAddress;
+            cdaiContract = new web3js.eth.Contract(cdaiContractABI, cdaiContractAddress);
+
+            if(window.ethereum){
+                ethereum.enable()
+            }
+            var accountInterval = setInterval(()=> {
+                web3.eth.getAccounts((error, accounts) => {
+                    if (accounts[0] !== this.userAccount) {
+                        console.log(accounts[0])
+                        this.userAccount = accounts[0];
+                        console.log(this.userAccount)
+                    }
+                });
+            }, 100);
+        },
+        methods:{
+            approve() {
+            console.log(this.userAccount)
+            daiContract.methods.approve(this.cdaiContractAddress, -1)
+                .send({ from: this.userAccount })
+                .on("transactionHash",  (txhash)=> {
+                    this.txhash = txhash
+                })
+                .on("receipt", function (receipt) {
+                    //Process when transaction is confirmed
+                    console.log(receipt)
+                })
+                .on("error", function (error) {
+                    //Process when transaction is failed
+                    console.log(error)
+                });
+            },
+            mint() {
+                var _ammount = this.ammount * 10 ** 18
+                console.log(_ammount)
+                cdaiContract.methods.mint(_ammount)
+                    .send({ from: this.userAccount })
+                    .on("transactionHash", (txhash) =>{
+                        this.txhash = txhash
+                    })
+                    .on("receipt", function (receipt) {
+                        //Process when transaction is confirmed
+                        console.log(receipt)
+                    })
+                    .on("error", function (error) {
+                        //Process when transaction is failed
+                        console.log(error)
+                    });
+            },
+            redeemUnderlying() {
+            var _ammount = this.ammount * 10 ** 18
+            cdaiContract.methods.redeemUnderlying(_ammount)
+                .send({ from: this.userAccount })
+                .on("transactionHash", (txhash) =>{
+                    this.txhash = txhash
+                })
+                .on("receipt", function (receipt) {
+                    //Process when transaction is confirmed
+                    console.log(receipt)
+                })
+                .on("error", function (error) {
+                    //Process when transaction is failed
+                    console.log(error)
+                });
+            },
+            get() {
+                cdaiContract.methods.balanceOf(this.userAccount).call().then((_val) => {
+                    this.cdaiBalance = _val
+                });
+                daiContract.methods.balanceOf(this.userAccount).call().then((_val) => {
+                    this.daiBalance = _val / 10**18
+                });
+            },
+            approve2() {
+            console.log(1)
+            daiContract.methods.approve(this.address, -1)
+                .send({ from: this.userAccount })
+                .on("transactionHash",  (txhash)=> {
+                    this.txhash = txhash
+                })
+                .on("receipt", function (receipt) {
+                    //Process when transaction is confirmed
+                    console.log(receipt)
+                })
+                .on("error", function (error) {
+                    //Process when transaction is failed
+                    console.log(error)
+                });
+            },
+        }
+    })
+    </script>
+
+</body>
+
+</html>
