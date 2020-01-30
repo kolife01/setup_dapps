@@ -13,19 +13,37 @@
     <div id="app">
         <h1>Simple Lending Dapp</h1>
 
-        <h2></h2>
+        <h2>DAI</h2>
         <p>Please connect Rinkeby Network</p>
         <p>address: {{ userAccount }}</p>
         <p>balance: {{ daiBalance }} DAI</p>
         <p>balance: {{ cdaiBalance }} cDAI</p>
         <button @click="get">getBalance</button><br>
         <button @click="approve">Approve</button><br>
-        <input v-model="ammount" placeholder="ammount">
+        <input v-model="amount" placeholder="amount">
         <button @click="mint">Mint</button><br>
-        <input v-model="ammount" placeholder="ammount">
+        <input v-model="amount" placeholder="amount">
         <button @click="redeemUnderlying">RedeemUnderlying</button><br>
+        <input v-model="cdaiAmount" placeholder="amount">
+        <button @click="redeem">Redeem</button><br>
         <br>
         <a :href="'https://rinkeby.etherscan.io/tx/' + txhash">TxInfo: {{ txhash }}</a>
+        <h2>USDC</h2>
+        <p>Please connect Rinkeby Network</p>
+        <p>address: {{ userAccount }}</p>
+        <p>balance: {{ usdcBalance }} USDC</p>
+        <p>balance: {{ cusdcBalance }} cUSDC</p>
+        <button @click="get">getBalance</button><br>
+        <button @click="approve">Approve</button><br>
+        <input v-model="amount" placeholder="amount">
+        <button @click="cusdcMint">Mint</button><br>
+        <input v-model="amount" placeholder="amount">
+        <button @click="redeemUnderlying">RedeemUnderlying</button><br>
+        <input v-model="cdaiAmount" placeholder="amount">
+        <button @click="cusdcRedeem">Redeem</button><br>
+        <br>
+        <a :href="'https://rinkeby.etherscan.io/tx/' + txhash">TxInfo: {{ txhash }}</a>
+
         <h2>How to get Rinkeby ETH & DAI</h2>
         <p>step1: get Rinkeby ETH <a href="https://faucet.rinkeby.io/">link</a></p>
         <p>step2: get Rinkeby DAI <a href="https://app.compound.finance/asset/cDAI">link</a></p>
@@ -39,12 +57,17 @@
       data: {
         cdaiBalance: '0',
         daiBalance: '0',
+        cusdcBalance: '0',
+        usdcBalance: '0',
         daiContractAddress:'0x5592ec0cfb4dbc12d3ab100b257153436a1f0fea',
         cdaiContractAddress:'0x6d7f0754ffeb405d23c51ce938289d4835be3b14',
+        usdcContractAddress:'0x4DBCdF9B62e891a7cec5A2568C3F4FAF9E8Abe2b',
+        cusdcContractAddress:'0x5b281a6dda0b271e91ae35de655ad301c976edb1',
         userAccount: '',
-        ammount: '',
+        amount: '',
+        cdaiAmount: '',
         txhash: '',
-        address: ''
+        address: '',
       },
       mounted(){
             // this.userAccount = '0x6183e0EA3727E40c770A28ebaD62A4F008543fe4'
@@ -62,6 +85,10 @@
 
             var cdaiContractAddress = this.cdaiContractAddress;
             cdaiContract = new web3js.eth.Contract(cdaiContractABI, cdaiContractAddress);
+
+            usdcContract = new web3js.eth.Contract(daiContractABI, this.usdcContractAddress);
+
+            cusdcContract = new web3js.eth.Contract(cdaiContractABI, this.cusdcContractAddress);
 
             if(window.ethereum){
                 ethereum.enable()
@@ -94,9 +121,26 @@
                 });
             },
             mint() {
-                var _ammount = this.ammount * 10 ** 18
-                console.log(_ammount)
-                cdaiContract.methods.mint(_ammount)
+                var _amount = this.amount * 10 ** 18
+                console.log(_amount)
+                cdaiContract.methods.mint(_amount)
+                    .send({ from: this.userAccount })
+                    .on("transactionHash", (txhash) =>{
+                        this.txhash = txhash
+                    })
+                    .on("receipt", function (receipt) {
+                        //Process when transaction is confirmed
+                        console.log(receipt)
+                    })
+                    .on("error", function (error) {
+                        //Process when transaction is failed
+                        console.log(error)
+                    });
+            },
+            cusdcMint() {
+                var _amount = this.amount * 10 ** 18
+                console.log(_amount)
+                cusdcContract.methods.mint(_amount)
                     .send({ from: this.userAccount })
                     .on("transactionHash", (txhash) =>{
                         this.txhash = txhash
@@ -111,8 +155,40 @@
                     });
             },
             redeemUnderlying() {
-            var _ammount = this.ammount * 10 ** 18
-            cdaiContract.methods.redeemUnderlying(_ammount)
+            var _amount = this.amount * 10 ** 18
+            cdaiContract.methods.redeemUnderlying(_amount)
+                .send({ from: this.userAccount })
+                .on("transactionHash", (txhash) =>{
+                    this.txhash = txhash
+                })
+                .on("receipt", function (receipt) {
+                    //Process when transaction is confirmed
+                    console.log(receipt)
+                })
+                .on("error", function (error) {
+                    //Process when transaction is failed
+                    console.log(error)
+                });
+            },
+            redeem() {
+            var _amount = this.cdaiAmount
+            cdaiContract.methods.redeem(_amount)
+                .send({ from: this.userAccount })
+                .on("transactionHash", (txhash) =>{
+                    this.txhash = txhash
+                })
+                .on("receipt", function (receipt) {
+                    //Process when transaction is confirmed
+                    console.log(receipt)
+                })
+                .on("error", function (error) {
+                    //Process when transaction is failed
+                    console.log(error)
+                });
+            },
+            cusdcRedeem() {
+            var _amount = this.cdaiAmount
+            cusdcContract.methods.redeem(_amount)
                 .send({ from: this.userAccount })
                 .on("transactionHash", (txhash) =>{
                     this.txhash = txhash
@@ -132,6 +208,12 @@
                 });
                 daiContract.methods.balanceOf(this.userAccount).call().then((_val) => {
                     this.daiBalance = _val / 10**18
+                });
+                cusdcContract.methods.balanceOf(this.userAccount).call().then((_val) => {
+                    this.cusdcBalance = _val
+                });
+                usdcContract.methods.balanceOf(this.userAccount).call().then((_val) => {
+                    this.usdcBalance = _val / 10**18
                 });
             },
             approve2() {
